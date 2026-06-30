@@ -8,7 +8,7 @@ load_dotenv()
 
 # Configure the Gemini Flash Engine
 llm = LLM(
-    model="gemini/gemini-2.5-flash",  
+    model="gemini/gemini-3.1-flash-lite",  
     temperature=0.7,
     api_key=os.environ.get("GEMINI_API_KEY")
 )
@@ -58,7 +58,8 @@ def run_marketing_agent(topic_input):
         agents=[researcher, writer, editor],
         tasks=[task_research, task_write, task_edit],
         process=Process.sequential,
-        verbose=True
+        max_rpm=12,
+        verbose=False
     )
     
     return crew.kickoff()
