@@ -91,13 +91,13 @@ Launch the local web server layer directly from your active interpreter environm
 ```bash
 python -m streamlit run main.py
 ```
-## 💼 Premium Licensing & Custom Adaptations
+## 🤝 Contributing & Future Roadmap
 
-Want unlimited cloud generations, fine-tuned custom enterprise brand voice models, or support for live URL automated scraping?
+This project is fully open-source and free to use! Here is how you can get involved or scale it:
 
-* **Explore Premium Tiers:** [Unlock Unlimited Engine Access](https://www.buymeacoffee.com/yourusername)
-* **Developer Support:** Feel free to fork this project, open issues, or submit feature pull requests!
+* **Developer Support:** Feel free to fork this repository, open descriptive issues, or submit code optimization pull requests!
+* **Custom Enterprise Adaptations:** Looking to add automated live URL scraping or fine-tuned custom enterprise brand voice models? Feel free to reach out or drop a suggestion in the issues tab.
 
 ---
 
-*Distributed under the MIT License. See [LICENSE](LICENSE) for more information.*
+*Distributed under the permissive **MIT License**. See the [LICENSE](LICENSE) file for complete rights and liability terms.*
