@@ -70,9 +70,10 @@ The engine uses a strict sequential execution assembly line model where data flo
 
 #### 1. Clone the Repository
 ```bash
-git clone [https://github.com/MohithReddy1/marketing-agent-crew](https://github.com/MohithReddy1/marketing-agent-crew)
+git clone https://github.com/MohithReddy1/marketing-agent-crew.git
 cd marketing-agent-crew
 ```
+
 ### 🔑 2. Configure Your Environment Secrets
 Create a `.env` file directly within the root project directory:
 
