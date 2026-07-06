@@ -1,47 +1,96 @@
-import os
+import re
 import streamlit as st 
-from dotenv import load_dotenv
+import streamlit.components.v1 as components
 from crewai import Agent, Task, Crew, Process, LLM
 
-# Load variables
-load_dotenv()
+# ────────────────────────────────────────────────────────
+# STREAMLIT UI CONFIGURATION & SESSION STATE
+# ────────────────────────────────────────────────────────
+st.set_page_config(page_title="AI Agent Storefront", page_icon="🚀", layout="centered")
 
-# Configure the Gemini Flash Engine
-llm = LLM(
-    model="gemini/gemini-3.1-flash-lite",  
-    temperature=0.7,
-    api_key=os.environ.get("GEMINI_API_KEY")
+# Initialize API Key in Session State to empty string if it doesn't exist yet
+if "saved_api_key" not in st.session_state:
+    st.session_state["saved_api_key"] = ""
+
+# Visual Title & Branding
+st.title("🤖 Multi-Agent Content Engine")
+st.write("Stop wasting hours writing social copy. Let a specialized agent crew instantly transform any topic into high-performing content for X, LinkedIn, and Instagram.")
+
+st.markdown("---")
+
+# ────────────────────────────────────────────────────────
+# SIDEBAR AUTHENTICATION SETUP (PURE USER ENTRY)
+# ────────────────────────────────────────────────────────
+st.sidebar.header("🔑 Authentication Setup")
+
+# Input field binds directly to st.session_state["saved_api_key"] via the 'key' argument
+api_key_input = st.sidebar.text_input(
+    label="Enter Your Gemini API Key:",
+    placeholder="AIzaSy...",
+    type="password",
+    key="saved_api_key",
+    help="Get a free key from Google AI Studio. It will be securely stored for this session."
 )
 
-# Define Agents
-researcher = Agent(
-    role='Lead Content Researcher',
-    goal='Accurately extract key facts, statistics, and core insights from raw text or topics.',
-    backstory="""You are an elite research analyst. Your job is to deliver structured summaries. 
-    CRITICAL: Focus ONLY on the current topic provided. Do not assume or inject artificial intelligence, 
-    software engineering, or tech industry concepts unless the topic explicitly asks for it.""",
-    llm=llm
+# Visual status indicator for the user
+if st.session_state["saved_api_key"].strip():
+    st.sidebar.success("🔒 API Key Loaded & Active")
+else:
+    st.sidebar.warning("⚠️ API Key Required to Launch")
+
+
+# ────────────────────────────────────────────────────────
+# USER INPUT CONFIGURATION
+# ────────────────────────────────────────────────────────
+st.subheader("🔮 Campaign Configuration")
+user_topic = st.text_area(
+    label="What topic or link do you want your agent crew to generate copy for?",
+    placeholder="e.g., Why building open-source software is the best way to land a tech job in 2026...",
+    height=100
 )
 
-writer = Agent(
-    role='Social Media Copywriter',
-    goal='Transform research summaries into highly engaging, viral platform-specific posts.',
-    backstory="""You are a master digital marketer who knows exactly how to capture attention on X, LinkedIn, and Instagram.
-    CRITICAL: Match the tone and domain of the topic perfectly. If the topic is about food, hospitality, or local retail, 
-    do not write about AI, coding, or tech optimization. Keep it grounded in the actual industry of the prompt.""",
-    llm=llm
-)
+st.caption("💡 Tier Feature: Standard access uses optimized cloud routing (Gemini 3.1 Flash Lite).")
 
-editor = Agent(
-    role='Chief Brand Editor',
-    goal='Ensure all generated copy is polished, typo-free, and aligned with professional standards.',
-    backstory="""You are a meticulous editor with an eagle eye for detail, sentence flow, and formatting.
-    CRITICAL: Check for context bleeding. Strip out any repetitive tech jargon or AI patterns if the topic 
-    is a non-technical business (like an ice cream shop). Ensure the copy sounds natural for its target industry.""",
-    llm=llm
-)
 
-def run_marketing_agent(topic_input):
+# ────────────────────────────────────────────────────────
+# CREWAI BACKEND ORCHESTRATION PIPELINE
+# ────────────────────────────────────────────────────────
+def run_marketing_agent(topic_input, user_key):
+    # Instantiate the LLM engine dynamically using the user's provided key
+    llm = LLM(
+        model="gemini/gemini-3.1-flash-lite",  
+        temperature=0.7,
+        api_key=user_key
+    )
+
+    # Define Agents
+    researcher = Agent(
+        role='Lead Content Researcher',
+        goal='Accurately extract key facts, statistics, and core insights from raw text or topics.',
+        backstory="""You are an elite research analyst. Your job is to deliver structured summaries. 
+        CRITICAL: Focus ONLY on the current topic provided. Do not assume or inject artificial intelligence, 
+        software engineering, or tech industry concepts unless the topic explicitly asks for it.""",
+        llm=llm
+    )
+
+    writer = Agent(
+        role='Social Media Copywriter',
+        goal='Transform research summaries into highly engaging, viral platform-specific posts.',
+        backstory="""You are a master digital marketer who knows exactly how to capture attention on X, LinkedIn, and Instagram.
+        CRITICAL: Match the tone and domain of the topic perfectly. If the topic is about food, hospitality, or local retail, 
+        do not write about AI, coding, or tech optimization. Keep it grounded in the actual industry of the prompt.""",
+        llm=llm
+    )
+
+    editor = Agent(
+        role='Chief Brand Editor',
+        goal='Ensure all generated copy is polished, typo-free, and aligned with professional standards.',
+        backstory="""You are a meticulous editor with an eagle eye for detail, sentence flow, and formatting.
+        CRITICAL: Check for context bleeding. Strip out any repetitive tech jargon or AI patterns if the topic 
+        is a non-technical business (like an ice cream shop). Ensure the copy sounds natural for its target industry.""",
+        llm=llm
+    )
+
     task_research = Task(
         description=f"Analyze the following input or topic: '{topic_input}'. Extract the top 3 key takeaways and target audience.",
         expected_output="A clean, bulleted summary of key facts.",
@@ -73,60 +122,46 @@ def run_marketing_agent(topic_input):
     
     return crew.kickoff()
 
+
 # ────────────────────────────────────────────────────────
-# STREAMLIT UI CODE (Your Storefront Layout)
+# ACTION BUTTON EXECUTION TRIGGER
 # ────────────────────────────────────────────────────────
-
-# Set webpage properties
-st.set_page_config(page_title="AI Agent Storefront", page_icon="🚀", layout="centered")
-
-# Visual Title & Branding
-st.title("🤖 Multi-Agent Content Engine")
-st.write("Stop wasting hours writing social copy. Let an specialized agent crew instantly transform any topic into high-performing content for X, LinkedIn, and Instagram.")
-
-st.markdown("---")
-
-# User Inputs Section
-st.subheader("🔮 Campaign Configuration")
-user_topic = st.text_area(
-    label="What topic or link do you want your agent crew to generate copy for?",
-    placeholder="e.g., Why building open-source software is the best way to land a tech job in 2026...",
-    height=100
-)
-
-# Pricing/Value Tier simulation for your customers
-st.caption("💡 Tier Feature: Standard access uses optimized cloud routing (Gemini 3.1 Flash Lite).")
-
-# Center Action Button
 if st.button("Launch Agent Crew 🚀", type="primary"):
-    if not user_topic.strip():
+    # Reference the session state key directly for safety checks
+    active_key = st.session_state["saved_api_key"].strip()
+    
+    if not active_key:
+        st.sidebar.error("❌ Missing API Key! Provide an API Key to execute campaigns.")
+    elif not user_topic.strip():
         st.warning("Please provide a topic or text input first!")
     else:
         with st.spinner("Agents are collaborating... (Step 1: Researching 🔍 -> Step 2: Drafting ✍️ -> Step 3: Editing 🧼)"):
             try:
-                # Run the backend agent script
-                final_output = run_marketing_agent(user_topic)
+                # Run the backend agent script with the session-saved key
+                final_output = run_marketing_agent(user_topic, active_key)
                 result_string = str(final_output)
                 
-                # --- SMART PARSING LOGIC ---
-                # Default fallbacks if parsing fails
+                # --- CASE-INSENSITIVE ROBUST REGEX PARSING LOGIC ---
                 x_content = result_string
                 linkedin_content = result_string
                 instagram_content = result_string
                 
-                # Split text by markers if they exist
-                if "[TWITTER]" in result_string and "[LINKEDIN]" in result_string and "[INSTAGRAM]" in result_string:
+                has_twitter = re.search(r'\[TWITTER\]', result_string, re.IGNORECASE)
+                has_linkedin = re.search(r'\[LINKEDIN\]', result_string, re.IGNORECASE)
+                has_instagram = re.search(r'\[INSTAGRAM\]', result_string, re.IGNORECASE)
+                
+                if has_twitter and has_linkedin and has_instagram:
                     try:
-                        parts_x = result_string.split("[TWITTER]")[1].split("[LINKEDIN]")
-                        x_content = parts_x[0].strip()
+                        parts_x = re.split(r'\[TWITTER\]', result_string, flags=re.IGNORECASE)[1]
+                        parts_x_split = re.split(r'\[LINKEDIN\]', parts_x, flags=re.IGNORECASE)
+                        x_content = parts_x_split[0].strip()
                         
-                        parts_li = parts_x[1].split("[INSTAGRAM]")
-                        linkedin_content = parts_li[0].strip()
-                        instagram_content = parts_li[1].strip()
+                        parts_li_split = re.split(r'\[INSTAGRAM\]', parts_x_split[1], flags=re.IGNORECASE)
+                        linkedin_content = parts_li_split[0].strip()
+                        instagram_content = parts_li_split[1].strip()
                     except Exception:
-                        # Fallback to full string if index splitting encounters a formatting anomaly
                         pass
-                # ----------------------------
+                # ----------------───────────────────────────────────
 
                 st.success("✨ Campaign Generated Successfully!")
                 st.balloons()
@@ -155,7 +190,7 @@ if st.button("Launch Agent Crew 🚀", type="primary"):
                         """
                         <div style="background-color: #f3f6f8; padding: 15px; border-radius: 8px; border-left: 5px solid #0077b5; color: #1d2226; margin-bottom: 15px;">
                             <h4 style="color: #0077b5; margin-top: 0; margin-bottom: 5px;">💼 LinkedIn Professional Post</h4>
-                            <p style="color: #5e5e5e; font-size: 0.85rem; margin: 0;">Isolated authority copy built for high scannability links.</p>
+                            <p style="color: #5e5e5e; font-size: 0.85rem; margin: 0;">Structured with white-space scannability and authority building metrics.</p>
                         </div>
                         """, 
                         unsafe_allow_html=True
@@ -173,22 +208,19 @@ if st.button("Launch Agent Crew 🚀", type="primary"):
                         unsafe_allow_html=True
                     )
                     
-                    # 💡 DYNAMIC FIX: Fallbacks now adapt to the user's specific input topic!
                     insta_image = f"A creative, high-converting social graphic highlighting the core concepts of: '{user_topic}'"
                     insta_caption = instagram_content
                     
-                    # More robust parsing that handles case-insensitive generation
-                    upper_content = instagram_content.upper()
-                    if "IMAGE" in upper_content and "CAPTION:" in instagram_content:
+                    if re.search(r'IMAGE', instagram_content, re.IGNORECASE) and re.search(r'CAPTION:', instagram_content, re.IGNORECASE):
                         try:
-                            # Split dynamically based on whatever the agent returned
-                            if "IMAGE SUGGESTION:" in instagram_content:
-                                parts_insta = instagram_content.split("IMAGE SUGGESTION:")[1].split("CAPTION:")
+                            if re.search(r'IMAGE SUGGESTION:', instagram_content, re.IGNORECASE):
+                                parts_insta = re.split(r'IMAGE SUGGESTION:', instagram_content, flags=re.IGNORECASE)[1]
                             else:
-                                parts_insta = instagram_content.split("IMAGE:")[1].split("CAPTION:")
+                                parts_insta = re.split(r'IMAGE:', instagram_content, flags=re.IGNORECASE)[1]
                                 
-                            insta_image = parts_insta[0].strip()
-                            insta_caption = parts_insta[1].strip()
+                            parts_insta_split = re.split(r'CAPTION:', parts_insta, flags=re.IGNORECASE)
+                            insta_image = parts_insta_split[0].strip()
+                            insta_caption = parts_insta_split[1].strip()
                         except Exception:
                             pass
                     
@@ -196,7 +228,7 @@ if st.button("Launch Agent Crew 🚀", type="primary"):
                     st.markdown("##### 🎨 Creative Design Direction")
                     st.code(insta_image, language="text", wrap_lines=True)
                     
-                    st.write("") # Layout spacer
+                    st.write("") 
                     
                     # 2. Caption Component Box
                     st.markdown("##### 📝 Optimized Caption & Tags")
