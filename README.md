@@ -9,6 +9,17 @@ An automated content marketing factory driven by a sequential crew of specialize
 
 ---
 
+## 🔀 Multi-Branch Deployment Matrix
+
+Choose the branch layout that best matches your target execution environment:
+
+| Branch | Authentication Model | Ideal Use Case | Setup Required |
+| :--- | :--- | :--- | :--- |
+| **`main`** *(Current)* | **Bring-Your-Own-Key (UI)** | Public Serverless Cloud Hosting (Streamlit Community Cloud, Hugging Face) | Zero backend files; Users paste their personal Gemini key into the secure sidebar text field. |
+| [**`feature-env-auth`**](../../tree/feature-env-auth) | **Environment Variable (`.env`)** | Local Private Testing, Private Servers, or Single-User Deployments | Root level `.env` file containing hardcoded `GEMINI_API_KEY` credential values. |
+
+---
+
 ## 🚀 Features
 
 - **Multi-Agent Collaboration:** Harnesses an isolated, specialized workforce (Researcher $\rightarrow$ Copywriter $\rightarrow$ Editor) working sequentially instead of a single generalist LLM prompt.
@@ -57,9 +68,7 @@ The engine uses a strict sequential execution assembly line model where data flo
 
 * **Orchestration Framework:** `CrewAI` (Role-based agent design, automated cross-task memory handoffs)
 * **Core Intelligence Engine:** `Google Gemini 3.1 Flash-Lite` (Advanced multimodal text processing, highly optimized cost-to-performance scaling profile)
-* **Storefront Web Framework:** `Streamlit` (Sleek reactive Python dashboard state rendering)
-* **Environment State Security:** `Python Dotenv` (Isolated credential safeguarding)
-
+* **Storefront Web Framework:** `Streamlit` (Sleek reactive Python dashboard state rendering, built-in session state variables mapping)
 ---
 
 ### 📦 Setup and Local Installation
@@ -74,24 +83,22 @@ git clone https://github.com/MohithReddy1/marketing-agent-crew.git
 cd marketing-agent-crew
 ```
 
-### 🔑 2. Configure Your Environment Secrets
-Create a `.env` file directly within the root project directory:
-
-```env
-GEMINI_API_KEY=your_secret_google_ai_studio_api_key_here
-```
-### 📦 3. Install Target Dependencies
+### 📦 2. Install Target Dependencies
 Automatically build and compile the application's virtual container dependencies using the project requirements manifest:
 
 ```bash
 pip install -r requirements.txt
 ```
-### 🖥️ 4. Boot Up the Dashboard Storefront
+### 🖥️ 3. Boot Up the Dashboard Storefront
 Launch the local web server layer directly from your active interpreter environment context:
 
 ```bash
 python -m streamlit run main.py
 ```
+
+### 🔑 4. Provide Your Key via the UI
+Once the dashboard renders inside your browser viewport, open the 🔑 Authentication Setup drawer in the left sidebar and paste your personal Gemini API key. The application state engine securely saves it for the remainder of your browser session!
+
 ## 🤝 Contributing & Future Roadmap
 
 This project is fully open-source and free to use! Here is how you can get involved or scale it:
