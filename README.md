@@ -9,6 +9,17 @@ An automated content marketing factory driven by a sequential crew of specialize
 
 ---
 
+## 🔀 Multi-Branch Deployment Matrix
+
+Choose the branch layout that best matches your target execution environment:
+
+| Branch | Authentication Model | Ideal Use Case | Setup Required |
+| :--- | :--- | :--- | :--- |
+| [**`main`**](../../tree/main) | **Bring-Your-Own-Key (UI)** | Public Serverless Cloud Hosting (Streamlit Community Cloud, Hugging Face) | Zero backend files; Users paste their personal Gemini key into the secure sidebar text field. |
+| **`feature-env-auth`** *(Current)* | **Environment Variable (`.env`)** | Local Private Testing, Private Servers, or Single-User Deployments | Root level `.env` file containing hardcoded `GEMINI_API_KEY` credential values. |
+
+---
+
 ## 🚀 Features
 
 - **Multi-Agent Collaboration:** Harnesses an isolated, specialized workforce (Researcher $\rightarrow$ Copywriter $\rightarrow$ Editor) working sequentially instead of a single generalist LLM prompt.
@@ -72,6 +83,7 @@ The engine uses a strict sequential execution assembly line model where data flo
 ```bash
 git clone https://github.com/MohithReddy1/marketing-agent-crew.git
 cd marketing-agent-crew
+git checkout feature-env-auth
 ```
 
 ### 🔑 2. Configure Your Environment Secrets
@@ -92,6 +104,8 @@ Launch the local web server layer directly from your active interpreter environm
 ```bash
 python -m streamlit run main.py
 ```
+The system will automatically find your configured environment token and grant instant access to the application workflows!
+
 ## 🤝 Contributing & Future Roadmap
 
 This project is fully open-source and free to use! Here is how you can get involved or scale it:
