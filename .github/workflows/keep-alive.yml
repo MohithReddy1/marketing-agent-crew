@@ -1,40 +1,60 @@
 name: Keep Streamlit App Awake 🚀
 
-# 1. TRIGGERS: When does this workflow run?
 on:
   schedule:
-    # Runs at 08:30 AM UTC every day (CRON syntax)
-    # Adjust time or frequency as needed
+    # Runs at 08:30 AM UTC every single day
     - cron: '30 8 * * *'
-  
-  # Allows you to click "Run workflow" manually from the GitHub website for testing!
-  workflow_dispatch: 
+  workflow_dispatch: # Allows manual trigger testing
 
-# 2. JOBS: What work should be performed?
 jobs:
-  ping-streamlit:
-    runs-on: ubuntu-latest # GitHub spins up a fresh Ubuntu Linux machine
+  wake-streamlit:
+    runs-on: ubuntu-latest
 
     steps:
-      # Step A: Check out the repo code (standard best practice)
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step B: Send an HTTP GET request to your deployed Streamlit URL
-      - name: Send Ping Request to Streamlit App
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-node-version: '20'
+
+      - name: Install Playwright Automation Engine
         run: |
-          # Replace the URL below with YOUR real Streamlit deployment URL!
-          APP_URL="https://marketing-agent-crew.streamlit.app/"
-          
-          echo "Pinging Streamlit App at $APP_URL..."
-          
-          # curl fetches the web page; -s hides progress bar; -o throws away raw HTML
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL")
-          
-          echo "Received HTTP Status Code: $HTTP_STATUS"
-          
-          if [ "$HTTP_STATUS" -eq 200 ]; then
-            echo "✅ Streamlit app is alive and responding!"
-          else
-            echo "⚠️ Warning: Streamlit returned status $HTTP_STATUS (App might be waking up or offline)."
-          fi
+          npm install playwright
+          npx playwright install chromium --with-deps
+
+      - name: Run Headless Browser Interaction Session
+        run: |
+          node -e "
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage();
+            
+            const targetUrl = 'https://marketing-agent-crew.streamlit.app';
+            console.log('Opening headless browser session at: ' + targetUrl);
+            
+            // Navigate to the app and wait until all network connections are idle
+            await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 60000 });
+            
+            // Wait an additional 10 seconds to allow Streamlit WebSockets to completely handshake
+            await page.waitForTimeout(10000);
+            
+            console.log('Page Title:', await page.title());
+            
+            // Check if the page contains the 'Wake up' button just in case it was already asleep
+            const wakeButton = page.locator('button:has-text(\"Wake this app back up\")');
+            if (await wakeButton.count() > 0) {
+              console.log('🔄 App was sleeping! Simulating click on Wake Up button...');
+              await wakeButton.click();
+              // Give it 30 seconds to run the container boot sequence
+              await page.waitForTimeout(30000);
+            } else {
+              console.log('✅ App was already awake. Session state refreshed successfully.');
+            }
+            
+            await browser.close();
+            console.log('🏁 Browser session closed safely.');
+          })();
+          "
