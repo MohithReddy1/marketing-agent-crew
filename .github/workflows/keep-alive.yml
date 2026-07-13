@@ -1,0 +1,40 @@
+name: Keep Streamlit App Awake 🚀
+
+# 1. TRIGGERS: When does this workflow run?
+on:
+  schedule:
+    # Runs at 08:30 AM UTC every day (CRON syntax)
+    # Adjust time or frequency as needed
+    - cron: '30 8 * * *'
+  
+  # Allows you to click "Run workflow" manually from the GitHub website for testing!
+  workflow_dispatch: 
+
+# 2. JOBS: What work should be performed?
+jobs:
+  ping-streamlit:
+    runs-on: ubuntu-latest # GitHub spins up a fresh Ubuntu Linux machine
+
+    steps:
+      # Step A: Check out the repo code (standard best practice)
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step B: Send an HTTP GET request to your deployed Streamlit URL
+      - name: Send Ping Request to Streamlit App
+        run: |
+          # Replace the URL below with YOUR real Streamlit deployment URL!
+          APP_URL="https://marketing-agent-crew.streamlit.app/"
+          
+          echo "Pinging Streamlit App at $APP_URL..."
+          
+          # curl fetches the web page; -s hides progress bar; -o throws away raw HTML
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL")
+          
+          echo "Received HTTP Status Code: $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "✅ Streamlit app is alive and responding!"
+          else
+            echo "⚠️ Warning: Streamlit returned status $HTTP_STATUS (App might be waking up or offline)."
+          fi
